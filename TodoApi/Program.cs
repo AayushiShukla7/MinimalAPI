@@ -22,10 +22,12 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// .NET 7 New Feature #1 - Grouping
+#region .NET 7 New Feature #1 - Grouping
 // Creating a group increases URL readability and enforces uniformity 
 // Makes routing dynamic and easy to update/manage routes
 var items = app.MapGroup("/todoItems");
+
+#endregion
 
 #region Setting up the endpoints
 
@@ -72,7 +74,9 @@ items.MapDelete("/{id}", ([FromServices] ItemRepository items, int id) => {
 
 #endregion
 
-// .NET 7 New Feature #2 - Filters (Pre/Post-Processing)
+#region .NET 7 New Feature #2 - Filters (Pre/Post-Processing)
+
+//Add pre-processing and post-processing logic to an handler
 items.MapGet("/filters", (string secretPasscode) => {
     return "Hello World";
 })
@@ -85,6 +89,7 @@ items.MapGet("/filters", (string secretPasscode) => {
     return await next(context);
 });
 
+// Could add multiple filters (Filter Chaining) to a handler as well.
 // Filter code called before the next() -> executed in order of First In, First Out (FIFO) order.
 // Filter code called after next() -> executed in order of Last In, First Out (LIFO) order.
 app.MapGet("/filterV2", () =>
@@ -113,6 +118,17 @@ app.MapGet("/filterV2", () =>
     app.Logger.LogInformation("     After 3rd filter");
     return result;
 });
+
+#endregion
+
+#region .NET 7 New Feature #3 - File Uploads
+
+// Bind files to the handler methods with ease
+app.MapPost("/upload", async (IFormFile file) => {
+    await file.CopyToAsync(File.OpenWrite("upload.txt"));
+});
+
+#endregion
 
 app.UseHttpsRedirection();
 
