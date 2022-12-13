@@ -2,6 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Overwrite the existing Logging provider and add Console for output
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+
 // Add services to the container.
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -23,7 +27,8 @@ if (app.Environment.IsDevelopment())
 // Makes routing dynamic and easy to update/manage routes
 var items = app.MapGroup("/todoItems");
 
-// Setting up the endpoints
+#region Setting up the endpoints
+
 // GET - All Items
 items.MapGet("/", ([FromServices] ItemRepository items) => {
     return items.GetAll();
@@ -63,6 +68,50 @@ items.MapDelete("/{id}", ([FromServices] ItemRepository items, int id) => {
     
     items.Delete(id);
     return Results.NoContent(); // No need for any return 
+});
+
+#endregion
+
+// .NET 7 New Feature #2 - Filters (Pre/Post-Processing)
+items.MapGet("/filters", (string secretPasscode) => {
+    return "Hello World";
+})
+.AddEndpointFilter(async (context, next) => {
+    if(!context.HttpContext.Request.QueryString.Value.Contains("meep")) 
+    {
+        return Results.BadRequest();
+    }
+
+    return await next(context);
+});
+
+// Filter code called before the next() -> executed in order of First In, First Out (FIFO) order.
+// Filter code called after next() -> executed in order of Last In, First Out (LIFO) order.
+app.MapGet("/filterV2", () =>
+{
+    app.Logger.LogInformation("             Endpoint");
+    return "Test of multiple filters";
+})
+.AddEndpointFilter(async (efiContext, next) =>
+{
+    app.Logger.LogInformation("Before first filter");
+    var result = await next(efiContext);
+    app.Logger.LogInformation("After first filter");
+    return result;
+})
+.AddEndpointFilter(async (efiContext, next) =>
+{
+    app.Logger.LogInformation(" Before 2nd filter");
+    var result = await next(efiContext);
+    app.Logger.LogInformation(" After 2nd filter");
+    return result;
+})
+.AddEndpointFilter(async (efiContext, next) =>
+{
+    app.Logger.LogInformation("     Before 3rd filter");
+    var result = await next(efiContext);
+    app.Logger.LogInformation("     After 3rd filter");
+    return result;
 });
 
 app.UseHttpsRedirection();
