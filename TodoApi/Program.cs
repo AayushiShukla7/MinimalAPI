@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -141,6 +142,18 @@ app.MapGet("/array-binding", (string[] names) => {
 
 #endregion
 
+#region .NET 7 New Feature #5 - Parameter Property Binding
+
+// Binding request data with [AsParameters] to bind Models into our request
+// Result request URL - http://localhost:5095/todos?Id=4&Title=Test%20task&Completed=false
+app.MapPost("/todos", async ([AsParameters]Todo newTodo) => {
+    // Save the Todo
+    var test = newTodo;
+    app.Logger.LogInformation(JsonSerializer.Serialize(test));
+});
+
+#endregion
+
 app.UseHttpsRedirection();
 
 app.Run();
@@ -181,4 +194,11 @@ class ItemRepository {
 
     // Deleting an existing item
     public void Delete(int id) => _items.Remove(id);
+}
+
+// For Feature #5 - Parameter Property Binding
+class Todo {
+    public int Id { get; set; }
+    public string Title { get; set; } = string.Empty;
+    public bool Completed { get; set; }
 }
