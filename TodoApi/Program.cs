@@ -130,6 +130,17 @@ app.MapPost("/upload", async (IFormFile file) => {
 
 #endregion
 
+#region .NET 7 New Feature #4 - Array Binding
+
+// Append multiple values into the Querystring
+// Minimal API would take care of assembling it into a string array for us
+// Resulting request URL [created by Minimal API automatically] - http://localhost:5095/array-binding?names=meep&names=morp&names=zeep
+app.MapGet("/array-binding", (string[] names) => {
+    return $"name1: {names[0]}, name2: {names[1]}";
+});
+
+#endregion
+
 app.UseHttpsRedirection();
 
 app.Run();
