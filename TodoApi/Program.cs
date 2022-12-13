@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +28,21 @@ if (app.Environment.IsDevelopment())
 // Creating a group increases URL readability and enforces uniformity 
 // Makes routing dynamic and easy to update/manage routes
 var items = app.MapGroup("/todoItems");
+
+var minAPI = app.MapGroup("/api").AddEndpointFilter(async (context, next) => 
+{
+    var result = await next(context);
+
+    context.HttpContext.Response.Headers.Add(new KeyValuePair<string, StringValues>("secret","XOXOGossipGirl"));
+
+    return result;
+});
+
+// Execute this and the response would have an additional header value - 
+// secret: XOXOGossipGirl
+minAPI.MapGet("/grouping", ([FromServices] ItemRepository items) => {
+    return items.GetAll();
+});
 
 #endregion
 
