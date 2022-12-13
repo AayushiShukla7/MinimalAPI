@@ -154,6 +154,20 @@ app.MapPost("/todos", async ([AsParameters]Todo newTodo) => {
 
 #endregion
 
+#region .NET 7 New Feature #6 - Open API Improvements
+
+// OpenAPI - A way of providing descriptive look at our services.
+// Adding .WithOpenApi() with an operation (with metadata and information updated) returned would increase readability of the API endpoints.
+// Updates Swagger endpoints to include more information about an endpoint
+app.MapPost("/open-api", () => "Hello World!")
+    .WithOpenApi(operation => {
+        operation.Summary = "Greets the user!";
+        operation.Description = "A greeting endpoint";
+        return operation;
+    });
+
+#endregion
+
 app.UseHttpsRedirection();
 
 app.Run();
